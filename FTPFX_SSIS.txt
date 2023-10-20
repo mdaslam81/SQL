@@ -1,0 +1,100 @@
+' Microsoft SQL Server Integration Services Script Task
+' Write scripts using Microsoft Visual Basic 2008.
+' The ScriptMain is the entry point class of the script.
+
+Imports System
+Imports System.Data
+Imports System.Math
+Imports Microsoft.SqlServer.Dts.Runtime
+
+<Microsoft.SqlServer.Dts.Tasks.ScriptTask.SSISScriptTaskEntryPointAttribute> _
+<System.CLSCompliantAttribute(False)> _
+Partial Public Class ScriptMain
+	Inherits Microsoft.SqlServer.Dts.Tasks.ScriptTask.VSTARTScriptObjectModelBase
+
+	Enum ScriptResults
+		Success = Microsoft.SqlServer.Dts.Runtime.DTSExecResult.Success
+		Failure = Microsoft.SqlServer.Dts.Runtime.DTSExecResult.Failure
+	End Enum
+	
+
+	' The execution engine calls this method when the task executes.
+	' To access the object model, use the Dts property. Connections, variables, events,
+	' and logging features are available as members of the Dts property as shown in the following examples.
+	'
+	' To reference a variable, call Dts.Variables("MyCaseSensitiveVariableName").Value
+	' To post a log entry, call Dts.Log("This is my log text", 999, Nothing)
+	' To fire an event, call Dts.Events.FireInformation(99, "test", "hit the help message", "", 0, True)
+	'
+	' To use the connections collection use something like the following:
+	' ConnectionManager cm = Dts.Connections.Add("OLEDB")
+	' cm.ConnectionString = "Data Source=localhost;Initial Catalog=AdventureWorks;Provider=SQLNCLI10;Integrated Security=SSPI;Auto Translate=False;"
+	'
+	' Before returning from this method, set the value of Dts.TaskResult to indicate success or failure.
+	' 
+	' To open Help, press F1.
+
+	Public Sub Main()
+		'
+		' Add your code here
+        Try
+
+            'Create the connection to the ftp server
+
+            Dim cm As ConnectionManager = Dts.Connections.Add("FTP")
+
+            'Set the properties like username & password
+
+            'cm.Properties("ServerName").SetValue(cm, "viper.ais.ucla.edu")
+
+            'cm.Properties("ServerUserName").SetValue(cm, "informa")
+
+            'cm.Properties("ServerPassword").SetValue(cm, "36#79xet")
+
+            cm.Properties("ServerName").SetValue(cm, "fx.it.ucla.edu")
+
+            cm.Properties("ServerUserName").SetValue(cm, "cdw_ro")
+
+            cm.Properties("ServerPassword").SetValue(cm, "R10w6-dC")
+
+            cm.Properties("ServerPort").SetValue(cm, "21")
+
+            cm.Properties("Timeout").SetValue(cm, "0") 'The 0 setting will make it not timeout
+
+            cm.Properties("ChunkSize").SetValue(cm, "1000") '1000 kb
+
+            cm.Properties("Retries").SetValue(cm, "1")
+
+            'create the FTP object that sends the files and pass it the connection created above.
+
+            Dim ftp As FtpClientConnection = New FtpClientConnection(cm.AcquireConnection(Nothing))
+
+            'Connects to the ftp server
+
+            ftp.Connect()
+
+            'Build a array of all the file names that is going to be FTP'ed (in this case only one file)
+
+            Dim files(0) As String
+
+            files(0) = "\\hubble.registrar.ucla.edu\SR2_Files\ed_stu_aff.dat"
+
+            'ftp the file 
+
+            'Note: I had a hard time finding the remote path directory. I found it by mistake by creating both the FTP connection and task in the SSIS package and it defaulted the remote path setting in the FTP task.
+
+            '"/bruincard/srsftp/"
+            ftp.SendFiles(files, "/", True, False) ' the True makes it overwrite existing file and False is saying that it is not transferring ASCII
+
+            ftp.Close()
+
+        Catch ex As Exception
+
+            Dts.TaskResult = ScriptResults.Failure
+
+        End Try
+
+        Dts.TaskResult = ScriptResults.Success
+	End Sub
+
+End Class

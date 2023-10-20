@@ -1,0 +1,85 @@
+declare @search varchar(150)
+--srdb_sr2_snap
+set @search ='qdb'
+ --	   ,rigel2.transcriptprinting.dbo.td2_degree_audit_assignments da_assign
+ --"rigel.uadb" srdb_sr2
+set nocount on
+ 
+declare @databasename as varchar(200)
+ 
+declare Curse cursor local fast_forward
+ for
+ select distinct
+ name 
+from 
+master.dbo.sysdatabases 
+where
+ --name not in ('master', 'msdb', 'model', 'tempdb','AdventureWorks','AdventureWorksDW'
+ --,'ReportServer','DocumentServices_Prod','iDBA','myreslife_old','AzureDevOps_2019_RO Applications'
+ --,'myreslife_qa_20191030','myreslife_qa_20200102','myreslife_test_20191030','AzureDevOps_2019_UCLASAIT Github Pipelines') 
+  name  in ('rcofunding','RCOFunding_preprod','sadev')
+open Curse
+ 
+
+fetch next from Curse into @databasename
+ 
+while @@fetch_status = 0
+ begin
+ 
+exec ('use ' + @databasename + '
+ select cast(''"' + @SEARCH + '" ' + @databasename + ''' as varchar(60))
+ 
+
+
+select distinct
+ cast(o.[name] as varchar(100)) as objectname,
+ o.type --left(c.text,50) as place
+ 
+from 
+syscomments c
+ inner join
+ sysobjects o ON
+ c.[id] = o.[id]
+
+ where 
+c.[text] like ''%' +@search+ '%'' 
+order by cast(o.[name] as varchar(100))
+ 
+
+')
+ 
+
+fetch next from Curse into @databasename
+ end
+ close Curse
+ deallocate Curse
+ 
+set nocount off
+
+
+5th dec
+
+
+--- With Schema
+declare @search varchar(150) , @Schema varchar(100)
+--srdb_sr2_snap
+set @search =''
+set @Schema = 'Fellowship'
+select distinct
+ cast(o.[name] as varchar(40)) as objectname,
+ o.type --left(c.text,50) as place
+from 
+syscomments c
+ inner join
+ sysobjects o ON
+ c.[id] = o.[id]
+ where 
+c.[text] like '%' +@search+ '%'
+and o.id in (
+ Select a.Object_id from [sys].[all_objects] a 
+ inner join sys.schemas b 
+ on a.schema_id = b.schema_id 
+ where b.name =  @Schema
+ and a.type_desc = 'SQL_STORED_PROCEDURE')
+order by cast(o.[name] as varchar(40))
+

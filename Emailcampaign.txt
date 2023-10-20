@@ -1,0 +1,10 @@
+Office of the Registrar - Records Section
+
+info@registrar.ucla.edu
+
+SELECT RIGHT(Email, LEN(Email) - CHARINDEX('@', email)) Domain ,
+COUNT(Email) EmailCount
+FROM   dbo.email
+WHERE  LEN(Email) > 0
+GROUP BY RIGHT(Email, LEN(Email) - CHARINDEX('@', email))
+ORDER BY EmailCount DESC

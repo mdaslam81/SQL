@@ -1,0 +1,17 @@
+Select * from UCLA_PayrollNames where full_name_person like '%Giri%'
+--tarun- 75000
+-- priya --74262
+-- Aviral --72334.800
+-- kushal --73008.000
+-- Mathew --112269.960
+-- Daniel --70000.080
+-- saheli --91815.000
+-- Giri --97912.440 --8159.370
+
+Select top  1 emplid  from ODSPROD.[ods_hcm].[HCM_ODS].[PS_UC_EXT_SYSTEM] where uc_ext_system_id = '404246826'
+
+	SELECT TOP 10 * FROM [ODSPROD].[ods_hcm].[HCM_ODS].PS_JOB  WHERE EMPLID LIKE  '10047712'--'10061652' 
+
+	SELECT TOP 10 * FROM [ODSPROD].[ods_hcm].[HCM_ODS].PS_JOB  WHERE EMPLID LIKE'10047712'
+
+	--40049442

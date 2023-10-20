@@ -1,0 +1,244 @@
+SELECT @sql=
+'SELECT * FROM OPENQUERY(QDB,''select aud.employee_id, emp_name, fedtax_exempt, home_dept_code, appt_begin_date, email_addr
+from
+qdb.dbo.tbl_emp_pay_audit aud
+join
+qdb.dbo.tbl_emp_appt app on aud.employee_id=app.employee_id 
+join
+qdb.dbo.fa_stu_profile pro on pro.stu_id=app.employee_id
+where
+fedtax_exempt=998
+and 
+home_dept_code=''''4250'''' and appt_begin_date >='''''+ @intDt+''''''')'
+
+EXEC (@sql)
+
+go
+SELECT * FROM OPENQUERY(QDB,'Select  fund_number ,SUM(g.ytd_financial) As fund_balance from qdb.dbo.gl_balances g
+, qdb.dbo.account a
+where g.ledger_year_month = CASE WHEN right(CONVERT(CHAR(6), GETDATE(), 112), 1) in (''6'', ''7'') then left(CONVERT(CHAR(6), GETDATE(), 112),4)+''06''
+								 WHEN datepart(m,getdate())=8 
+AND datepart(d,getdate())<= 16 then left(CONVERT(CHAR(6), GETDATE(), 112),4)+''06''
+							ELSE CONVERT(CHAR(6), GETDATE(), 112) end
+and g.location_code = ''4''
+and a.acct_grp_code_ucop LIKE ''14%''
+and a.location_code = g.location_code 
+and a.account_number = g.account_number 
+and a.cost_center_code = g.cost_center_code 
+GROUP BY fund_number')
+
+	scm.maj_cd in 
+	(''0090'',
+	 ''0084'',
+	 ''007L'',
+	 ''0378'', 
+	 ''00A1'',
+	 ''0207'',
+	 ''0210'',
+	 ''0453'',
+	 ''0472'',
+	 ''0579'',
+	 ''0932'')
+
+go
+
+Alter PROCEDURE [dbo].[GetStuUACodewithoutAthleticAwd]
+(	
+     @awdyr   AS VARCHAR(4)
+    ,@awdper   AS VARCHAR(3)
+)
+AS
+/**********************************************************************************************************************
+Creation Date :12/18/2014  Created By : Mohammed Aslam
+Purpose : 
+Database :
+OutPut Parameters : None
+Return Status : None
+Execution Sample : Exec [GetStuUACodewithoutAthleticAwd]'2015','15A'
+Data Modification
+Updates : 
+	Date                       Author                       purpose
+ ------------              ------------------           ---------------------
+***********************************************************************************************************************/
+BEGIN
+SET NOCOUNT ON;
+DECLARE @sql VARCHAR(MAX)
+
+SELECT @sql='SELECT * FROM OPENQUERY(qdb,
+		''SELECT p.awd_yr, p.awd_per, p.stu_id, max(p.spcl_pgm_cd) as pgm_cd
+	FROM qdb.dbo.fa_spcl_pgm_cd as p
+	left join
+	(
+	SELECT a.awd_yr, a.stu_id, a.awd_per
+	FROM qdb.dbo.fa_aid_id_attr as t 
+	INNER JOIN qdb.dbo.fa_awd_period as a ON t.aid_id = a.aid_id
+	WHERE (t.aid_id_desc Like ''''ATH%''''  Or t.aid_id_desc Like ''''ATH%'''' )
+	and a.awd_yr='''''+ @awdyr +''''' AND a.awd_per='''''+ @awdper +'''''
+	GROUP BY a.awd_yr, a.stu_id, a.awd_per
+	HAVING Sum(a.awd_per_offer_amt)>''''0''''
+	)
+	as q
+	on p.awd_yr=q.awd_yr and p.awd_per=q.awd_per and p.stu_id=q.stu_id
+	where p.awd_yr='''''+ @awdyr +''''' AND p.awd_per='''''+ @awdper +''''' AND p.spcl_pgm_cd=''''UA''''
+	 and q.stu_id is null
+	GROUP BY p.awd_yr, p.awd_per, p.stu_id'')'
+
+	--PRINT (@SQL)
+
+EXEC (@SQL)
+END
+
+
+
+SET NOCOUNT ON 
+/* Future plan
+awd_yr = x(x+1)
+awd_per = x(x+1)A
+AND awd_disb_term
+
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+declare @ucla_id as char(9)
+       ,@strt_dt as varchar(10)
+       ,@last_dt as varchar(10)
+       ,@osql    as nvarchar(max)
+        ;
+
+select @ucla_id = '004209109'--'102522101'
+      ,@strt_dt = '1/1/2016'
+      ,@last_dt = '1/14/2016'
+       ;
+select @osql    =  'select  activity_dt          = convert(date,la.ts,101)
+                           ,activity_hr          = datepart(hour,convert(time,la.ts,101))
+                           ,featurename          =
+                            case 
+                            when la.url   in (''/FAO/Error''
+                                             ,''/ro/classsearch/Error/Error403''
+                                             ,''/FAO/Error/Error403''
+                                             ,''/ro/classsearch/Error/ErrorException''
+                                             ,''/FAO/Error/ErrorException''
+                                             ,''''
+                                             )   then ''Error 403''
+                            when ft.featureid is null 
+                                                 then convert(varchar(2),la.featureid) + '' '' +
+                                                      '': missing valid feature name''
+                            when la.url   in (''W:\inetpub\sites\sa\ro\classsearch\''
+                                             ,''W:\inetpub\sites\sa\ro\classsearch''
+                                             ,''W:\inetpub\sites\sa\ro\classsearch\Search''
+                                             ,''W:\inetpub\sites\sa\ro\classsearch\Search\index''
+                                             )   then ft.featurename
+                            when la.url    = ''W:\inetpub\sites\sa\ro\classsearch\Results\ClassDetail'' 
+                                                 then ''Class Detail''
+                            when la.url    = ''W:\inetpub\sites\sa\ro\classsearch\Results''
+                                                 then ''Class Search Results''  
+                            when la.url   in (''/fao/epalshopping/''
+                                             ,''/FAO/EPALShopping''
+                                             )
+                                                 then ''Provisional Award Letter''
+                            else                      ft.featurename
+                           end
+                          ,la.stu_id
+                          ,la.clientIPAddress
+                          ,la.ts
+                    from   openquery(rigel,
+                                    ''
+                                     select stu_id = la.uid
+                                           ,la.url
+                                           ,la.ts
+                                           ,featureid = abs(la.featureid)
+                                           ,la.clientIPAddress
+                                     from   itslog_prod.u2_ursa2webdb.dbo.logpageaccess la with(readuncommitted)
+                                     where  la.ts    between ''''' + @strt_dt + ''''' and ''''' + @last_dt + '''''' + '
+                                        and la.uid = ''''' + @ucla_id + '''''
+                                    ''
+                                    ) la
+                           left join
+                           openquery(saitb,
+                                    ''
+                                     select ft.featureid
+                                           ,ft.featurename
+                                     from   iwe_prod.dbo.iwefeature    ft with(readuncommitted)
+                                    ''
+                                    ) ft
+                             on la.featureid = ft.featureid
+                    order by 
+                          la.ts desc
+                   '
+
+       ;
+
+execute sp_executesql @osql
+
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+DECLARE @VAR char(2)
+SELECT  @VAR = 'CA'
+EXEC MyLinkedServer.master.dbo.sp_executesql
+     N'SELECT * FROM pubs.dbo.authors WHERE state = @state',
+     N'@state char(2)',
+     @VAR
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~
+Partical Open query
+~~~~~~~~~~~~~~~~~~~~~~~~~
+, CASE WHEN [type_entry] Like '3%' THEN [posting_seq_num] END AS [Seq#]
+FROM fa_aid_CalGrantAcct cga 
+
+INNER JOIN 
+(select * from OPenquery(QDB, 'select * from qdb.dbo.gl_transactions 
+where location_code=''4'' 
+and fye_proc_ind in ('''', ''P'', ''I'', ''F'')
+
+and type_entry not in (''14'', ''BF'')
+
+and (account_number like ''11700%'')
+
+and left(trans_desc_gl,11) not like ''DFR SMR%''
+') )tr 
+ON cga.location_code = tr.location_code AND cga.account_number = tr.account_number
+WHERE tr.ledger_year_month Between [BegPer] 
+And CAST(Year(getdate()) AS varchar(4)) + CAST(CASE WHEN Month(getdate())<=9 THEN '0' + Month(getdate()) ELSE Month(getdate()) END AS varchar(2))
+GROUP BY 
+CASE 
+
+
+go
+~~~~~~~~~~~~~~~~~~~~~~~
+-- Martin code
+~~~~~~~~~~~~~~~~~~~
+DECLARE @jc AS CHAR(4)
+DECLARE @dml AS CHAR(1)
+DECLARE @ext AS CHAR(8)
+SET @jc='CONV'
+SET @dml='D'
+SET @ext='UCLA_UID'
+
+
+
+
+EXEC ( 'DECLARE @hold1 TABLE (employee_id VARCHAR(15), title_code CHAR(4), appt_dept_code CHAR(4), jobeffdate DATE)
+INSERT INTO @hold1 (employee_id, title_code, appt_dept_code, jobeffdate)
+SELECT DISTINCT 
+C.UC_EXT_SYSTEM_ID AS employee_id
+
+,RIGHT(F.JOBCODE,4) as title_code
+
+,LEFT(F.DEPTID,4) As appt_dept_code
+
+,MAX(F.EFFDT) AS jobeffdate
+FROM ods_hcm.HCM_ODS.[PS_UC_EXT_SYSTEM] AS C
+INNER JOIN ods_hcm.HCM_ODS.[PS_JOB] As F
+ON C.EMPLID = F.EMPLID 
+WHERE 
+RIGHT(F.JOBCODE,4) <> ? AND F.DML_IND <> ? AND C.UC_EXT_SYSTEM = ?
+GROUP BY C.UC_EXT_SYSTEM_ID, RIGHT(F.JOBCODE,4), LEFT(F.DEPTID,4)'
+, @jc, @dml, @ext) AT ODSPROD
+

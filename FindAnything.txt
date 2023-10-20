@@ -1,0 +1,4 @@
+Select object_Name(object_ID)
+from sys.SQL_Modules
+where 
+definition LIKE '%Something%'

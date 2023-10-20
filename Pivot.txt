@@ -1,0 +1,35 @@
+SELECT  RecordNumber,OutStandingAmount,TransactionID,isnull(ChargedAmt,0) As ChargeAmt,isnull(PayedAmt,0)As PayedAmt , (isnull(ChargedAmt,0) - isnull(PayedAmt,0)) As PendingAmt into #temp1
+FROM ( 
+SELECT RecordNumber,OutStandingAmount,TransactionID,[1] As ChargedAmt,[2] As PayedAmt
+from 
+(Select A.RecordNumber,A.OutStandingAmount, B.TransactionID, B.TransactionTypeID,B.Amount
+FROM Collections_Receivables.[Transaction] A
+INNER JOIN Collections_Receivables.[TransactionHistory] B 
+ON A.TransactionID = B.TransactionID
+where RecordNumber <> 5127 -- > Created by SAIT for testing
+
+)up
+PIVOT
+( SUM(Amount) for TransactionTypeID IN ([1],[2])) As Pvt ) pvt1 
+order by RecordNumber
+
+go
+Select stu_id
+,la_trm_psd_unt
+,fall_census_unit
+,case when f= 1 then 'Federal' else '' end Federal
+,case when S= 1 then 'State' else '' end State
+       from
+(
+Select 
+ID
+,stu_id
+,la_trm_psd_unt
+,fall_census_unit
+,aid_source_cd from TempFAOResults 
+)as t
+PIVOT(COUNT(ID) FOR aid_source_cd in (F,S)) as pvt
+ORDER BY stu_id 
+
+
+

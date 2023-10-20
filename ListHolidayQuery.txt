@@ -1,0 +1,3 @@
+ Select * from (
+ select year(bus_dt) As Year,* from rigel.srdb_sr2.dbo.SR0rht where BUS_DAY_TYP_CD = 'H') A
+ where A.Year = '2015'

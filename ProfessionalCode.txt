@@ -1,0 +1,16 @@
+ when ps.career_cd    = 'd' then
+							 'dental programs'       + ' ' +
+							 ps.coll_cd              + ' ' +
+							 ps.major_cd             + ' ' +
+							 rtrim(ps.deg_cd) 
+			   when ps.career_cd    = 'l' then
+							 'law programs'          + ' ' +
+							 ps.coll_cd              + ' ' +
+							 ps.major_cd             + ' ' +
+							 rtrim(ps.deg_cd) 
+			   when ps.career_cd    = 'm' then
+							 'medical programs'      + ' ' +
+							 ps.coll_cd              + ' ' +
+							 ps.major_cd      
+       + ' ' +
+							 rtrim(ps.deg_cd) 

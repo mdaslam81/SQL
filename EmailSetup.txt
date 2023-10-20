@@ -1,0 +1,9 @@
+EXEC sp_addrolemember N'DatabaseMailUserRole', N'srweb'
+
+EXECUTE msdb.dbo.sysmail_add_principalprofile_sp
+    @profile_name = 'MSA',
+    @principal_name = 'srweb',
+    @is_default = 1 ;
+
+
+	select * from msdb.dbo.sysmail_principalprofile

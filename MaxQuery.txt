@@ -1,0 +1,16 @@
+SELECT t1.AWD_PER,  
+(case when t1.career='U' then '5Total undergraduate' else '6Grad/Prof' end) as title1,   
+COUNT( t1.STUD_NO) as total_num,  
+COUNT(case when t1.READ_DATE is not null then t1.STUD_NO else null end) as total_view,  
+100 * COUNT(distinct(case when t1.READ_DATE is not null then t1.STUD_NO else null end)) / COUNT(distinct t1.STUD_NO) as view_per  
+--100 * COALESCE(COUNT(READ_DATE) / NULLIF(COUNT(*),0), 0) as view_per  
+ FROM [FAO_PROD].[dbo].[EPAL_STUDENT] t1 
+  INNER JOIN (SELECT STUD_NO as 'stud#',AWD_PER as 'awd_per',max(SEQ_NUM) as 'seq#'
+			 FROM [FAO_PROD].[dbo].[EPAL_STUDENT]
+	group by stud_no,AWD_PER) t2 
+	on (t1.STUD_NO=t2.stud# 
+	AND t1.SEQ_NUM=t2.seq# 
+	AND t1.AWD_PER=t2.awd_per)
+WHERE STUD_NO not IN ('502692059','702692058','003156116','203248568','203248573','803156117','003248569','902692057')  
+AND t1.AWD_PER IN (select * from dbo.fnSplit(@AWDP, @delimiter))  
+GROUP BY t1.AWD_PER, (case when career='U' then '5Total undergraduate' else '6Grad/Prof' end) 

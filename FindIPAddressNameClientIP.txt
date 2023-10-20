@@ -1,0 +1,7 @@
+SELECT 
+SERVERPROPERTY('computerNamePhysicalNetBIOS') as MachineName
+,SERVERPROPERTY('InstanceName') As InstanceName
+,local_net_address As IPAddressofSQLServer
+,client_net_address As IPAddressofClient
+ from sys.dm_exec_connections 
+ where session_id =90 

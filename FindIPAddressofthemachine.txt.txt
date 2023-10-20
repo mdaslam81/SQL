@@ -1,0 +1,29 @@
+select SERVERPROPERTY ('MachineName')
+
+Declare @ipLine varchar(200) 
+set @ipLine = 'SAIT-SQLB'
+Declare @pos int
+set nocount on
+          set @ip = NULL
+          Create table #temp (ipLine varchar(200))
+          Insert #temp exec master..xp_cmdshell 'ipconfig'
+          select @ipLine = ipLine
+          from #temp
+          where upper (ipLine) like '%IP ADDRESS%'
+          if (isnull (@ipLine,'***') != '***')
+          begin 
+                set @pos = CharIndex (':',@ipLine,1);
+                set @ip = rtrim(ltrim(substring (@ipLine , 
+               @pos + 1 ,
+                len (@ipLine) - @pos)))
+           end 
+drop table #temp
+set nocount off
+end 
+go
+
+declare @ip varchar(40)
+exec sp_get_ip_address @ip out
+print @ip
+
+    169.254.3.103

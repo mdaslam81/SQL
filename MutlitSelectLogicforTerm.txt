@@ -1,0 +1,6 @@
+		DECLARE @DET_LIST TABLE (DET VARCHAR(20))  
+		--VALUES ('19S'), ('192'), ('19F'), ('20W'), ('20S'), ('202')
+		INSERT INTO @DET_LIST 
+		SELECT Value from [FnSplit2](@TERMCD,',')
+
+	where SM.TERM_CD            IN (SELECT DET from @DET_LIST)

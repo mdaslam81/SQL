@@ -1,0 +1,4 @@
+SELECT OBJECT_NAME(OBJECT_ID),
+definition
+FROM sys.sql_modules
+WHERE definition LIKE '%' + 'BusinessEntityID' + '%'

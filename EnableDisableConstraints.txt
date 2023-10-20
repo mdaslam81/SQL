@@ -1,0 +1,4 @@
+
+EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all" -- Disable all contraints
+
+exec sp_msforeachtable @command1="print '?'", @command2="ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all" -- Enable All contraints

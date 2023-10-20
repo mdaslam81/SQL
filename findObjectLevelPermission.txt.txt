@@ -1,0 +1,50 @@
+DECLARE @Obj_sql VARCHAR(2000)
+DECLARE @Obj_table TABLE (DBName VARCHAR(200), UserName VARCHAR(250), ObjectName VARCHAR(500), Permission VARCHAR(200))
+SET @Obj_sql='select ''?'' as DBName,U.name as username, O.name as object,  permission_name as permission from ?.sys.database_permissions
+join ?.sys.sysusers U on grantee_principal_id = uid join ?.sys.sysobjects O on major_id = id WHERE ''?'' NOT IN (''master'',''msdb'',''model'',''tempdb'') order by U.name '
+INSERT @Obj_table
+EXEC sp_msforeachdb @command1=@Obj_sql
+SELECT * FROM @Obj_table
+
+
+
+
+
+Select * from (
+select sys.schemas.name 'Schema'
+	, sys.objects.name Object
+	, sys.database_principals.name username
+	, sys.database_permissions.type permissions_type
+	,     sys.database_permissions.permission_name
+	,      sys.database_permissions.state permission_state
+	,     sys.database_permissions.state_desc
+	,     state_desc + ' ' + permission_name + ' on ['+ sys.schemas.name + '].[' + sys.objects.name + '] to [' + sys.database_principals.name + ']' COLLATE LATIN1_General_CI_AS As Script
+from sys.database_permissions 
+join sys.objects 
+on sys.database_permissions.major_id =sys.objects.object_id 
+join sys.schemas 
+on sys.objects.schema_id = sys.schemas.schema_id 
+join sys.database_principals 
+on sys.database_permissions.grantee_principal_id =sys.database_principals.principal_id ) A
+where A.username like '%equity%'
+
+go
+
+DECLARE @SchemaName varchar(20)
+DECLARE @UserName varchar(20)
+
+SET @SchemaName = 'RO_Transcript'
+SET @UserName = 'UCLANET\saittscriptsa_test'
+
+select 'GRANT EXECUTE ON OBJECT::' + @SchemaName + '.' + P.name  + ' to ' + @UserName
+from sys.procedures P
+inner join sys.schemas S on P.schema_id = S.schema_id
+where S.name = @SchemaName
+
+Union 
+
+
+select 'GRANT VIEW DEFINITION ON OBJECT::' + @SchemaName + '.' + P.name  + ' to ' + @UserName
+from sys.procedures P
+inner join sys.schemas S on P.schema_id = S.schema_id
+where S.name = @SchemaName

@@ -1,0 +1,14 @@
+select Name,* from sysobjects where type ='P'
+and name like '%CheckReports_Parms_Table%'
+
+SELECT * FROM sys.procedures where Name not like '%sp_%'order by Name
+
+select * from sys.all_objects where type ='P'
+and Name not like '%sp_%'order by Name
+
+
+
+=First(Fields!job_title.Value, "DataSet3")
+
+
+="Run Date Time: "  & TODAY & " " & TimeOfDay

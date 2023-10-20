@@ -1,0 +1,9 @@
+SELECT DISTINCT group_name,
+      STUFF(
+      (
+            SELECT ',' + CAST(id AS VARCHAR)
+            FROM #test AS t2
+            WHERE t2.group_name = t.group_name
+            FOR XML PATH('')
+      ), 1, 1, '') AS id_list
+FROM #test AS t 

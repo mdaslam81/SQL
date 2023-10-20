@@ -1,0 +1,4 @@
+
+[ActivationCode] [uniqueidentifier] NOT NULL,
+
+ALTER TABLE [Handshake].[User_Activation_Code] ADD  CONSTRAINT [DF__User_Acti__Activ__38B33D58]  DEFAULT (newsequentialid()) FOR [ActivationCode]

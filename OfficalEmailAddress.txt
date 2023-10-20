@@ -1,0 +1,5 @@
+select B.UCLA_ID,lower(B.EMAIL_ADDR) from srdb_sr2.dbo.si0_directory A 
+Left join si0_email_addr B
+ON A.UCLA_ID = B.UCLA_ID
+and A.OFF_EMAIL_TYP_CD = B.EMAIL_ADDR_TYP_CD
+where A.UCLA_ID in 

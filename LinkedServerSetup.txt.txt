@@ -1,0 +1,50 @@
+USE [master]
+GO
+
+/****** Object:  LinkedServer [readerdb]    Script Date: 5/6/2013 9:34:07 AM ******/
+EXEC master.dbo.sp_addlinkedserver @server = N'readerdb', @srvproduct=N'readerdb.registrar.ucla.edu', @provider=N'SQLNCLI', @datasrc=N'readerdb-clust.registrar.ucla.edu,14444'
+ /* For security reasons the linked server remote logins password is changed with ######## */
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname=N'readerdb',@useself=N'False',@locallogin=NULL,@rmtuser=N'mdaslam',@rmtpassword='welcome920'
+
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'readerdb', @optname=N'collation compatible', @optvalue=N'false'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'readerdb', @optname=N'data access', @optvalue=N'true'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'readerdb', @optname=N'dist', @optvalue=N'false'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'readerdb', @optname=N'pub', @optvalue=N'false'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'readerdb', @optname=N'rpc', @optvalue=N'true'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'readerdb', @optname=N'rpc out', @optvalue=N'true'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'readerdb', @optname=N'sub', @optvalue=N'false'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'readerdb', @optname=N'connect timeout', @optvalue=N'0'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'readerdb', @optname=N'collation name', @optvalue=null
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'readerdb', @optname=N'lazy schema validation', @optvalue=N'false'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'readerdb', @optname=N'query timeout', @optvalue=N'0'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'readerdb', @optname=N'use remote collation', @optvalue=N'true'
+GO
+
+EXEC master.dbo.sp_serveroption @server=N'readerdb', @optname=N'remote proc transaction promotion', @optvalue=N'true'
+GO
+
+

@@ -1,0 +1,134 @@
+1. For stored procedures, find the creation date and the date of the most recent modification
+
+select name,
+       create_date,
+       modify_date
+from sys.procedures
+order by modify_date desc;
+
+2. For a specific procedure, find the creation date and the date of the last modification
+
+select name,
+       create_date,
+       modify_date
+from sys.procedures
+where  name = 'SPF_OLS_GET_CUSTOMER_SUMMARY'
+order by modify_date desc;
+
+3. Find stored procedures created & modified during the last seven days
+
+select name,
+       create_date,
+       modify_date
+from sys.procedures
+where modify_date >= DATEADD(day,-7, GETDATE())
+order by modify_date desc;
+
+select name,
+       create_date,
+       modify_date
+from sys.procedures
+where create_date >= DATEADD(day,-7, GETDATE())
+order by create_date desc;
+
+How to Find the Creation and Modification Dates for Tables
+
+To find the creation date and the date of the last modification of tables, query the sys.tables meta data table and order by the most recently modified view. Use the following syntax.
+
+1. For tables, find the creation date and the date of the most recent modification
+
+select name,
+       create_date,
+       modify_date
+from sys.tables
+order by modify_date desc;
+
+2. Find the creation date and the date last modified for a table
+
+select name,
+       create_date,
+       modify_date
+from sys.tables
+where  name = 'My_Table_Name'
+order by modify_date desc;
+
+3. Find tables created & modified during the last seven days
+
+select name,
+       create_date,
+       modify_date
+from sys.tables
+where modify_date >= DATEADD(day,-7, GETDATE())
+order by modify_date desc;
+
+select name,
+       create_date,
+       modify_date
+from sys.tables
+where create_date >= DATEADD(day,-7, GETDATE())
+order by create_date desc;
+
+How to Find the Creation and Modification Dates for Views
+
+To find the creation date and the date last modified of views, query the sys.views meta data table, and order by the most recent modification view. Use the following query.
+
+1. Find the creation date and the date of the most recent modification of views
+
+select name, 
+       create_date, 
+       modify_date
+from   sys.views
+order by modify_date desc
+
+2. Find Created and last modified date for a specific View
+
+select name,
+       create_date,
+       modify_date
+ from  sys.views
+ WHERE name = 'VIEW_NAME';
+
+3. Find Views created & modified during last 7 days
+
+select name, create_date, modify_date
+ from sys.views
+ where modify_date >= DATEADD(day,-7, GETDATE())
+ order by modify_date desc;
+
+select name, create_date, modify_date
+ from sys.views
+ where create_date >= DATEADD(day,-7, GETDATE())
+ order by create_date desc
+
+How to the Find Creation Date and the Modification Dates for Triggers
+
+To find the creation date and the date of the last modification of triggers, query the sys.triggers meta data table, and order by the most recently modified trigger. Use the following syntax.
+
+1. Find the creation date and the date of the most recent modification of triggers
+
+select name, 
+       create_date, 
+       modify_date
+ from sys.triggers
+ order by modify_date desc
+
+2. Find the creation and last modification date for a specific trigger
+
+select name, 
+       create_date, 
+       modify_date
+ from sys.triggers
+ WHERE name = 'Trigger_Name';
+
+3. Find triggers created & modified during last seven days
+
+select name, create_date, modify_date
+ from sys.triggers
+ where modify_date >= DATEADD(day,-7, GETDATE())
+ order by modify_date desc;
+
+select name, create_date, modify_date
+ from sys.triggers
+ where create_date >= DATEADD(day,-7, GETDATE())
+ order by create_date desc;
+

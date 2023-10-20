@@ -1,0 +1,15 @@
+The following example creates a table and defines a foreign key constraint on the column TempID that references the column SalesReasonID in the Sales.SalesReason table in the AdventureWorks database. The ON DELETE CASCADE and ON UPDATE CASCADE clauses are used to ensure that changes made to Sales.SalesReason table are automatically propagated to the Sales.TempSalesReason table.
+
+SQL
+
+Copy
+CREATE TABLE Sales.TempSalesReason 
+   (
+      TempID int NOT NULL, Name nvarchar(50)
+      , CONSTRAINT PK_TempSales PRIMARY KEY NONCLUSTERED (TempID)
+      , CONSTRAINT FK_TempSales_SalesReason FOREIGN KEY (TempID)
+        REFERENCES Sales.SalesReason (SalesReasonID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+   )
+;

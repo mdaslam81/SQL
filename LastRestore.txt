@@ -1,0 +1,12 @@
+
+SELECT  
+  [restore_date]
+      ,[destination_database_name]
+      ,[user_name]
+      ,[backup_set_id]
+      ,[restore_type]
+      ,[replace]
+      ,[recovery]
+      ,[restart]
+  FROM [msdb].[dbo].[restorehistory]
+  where [destination_database_name] ='dciss'

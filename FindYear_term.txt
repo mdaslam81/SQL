@@ -1,0 +1,16 @@
+/* Future plan
+awd_yr = x(x+1)
+awd_per = x(x+1)A
+AND awd_disb_term
+xxF = FALL Q
+x(x+1)W = WINT Q
+x(x+1)S = SPRG Q
+*/
+
+DECLARE @x varchar(2),@x1 varchar(2)
+DECLARE @sql VARCHAR(MAX)
+DECLARE @termcd varchar(max),@termcd1 varchar(max)
+SET @x = (Select right ( @Awd_Yr-1,2))
+SET @x1 = (Select right ( @Awd_Yr,2))
+SET @termcd = (select Cast( '['+ @x + 'F' +']'+','+'['+ @x1 +'W'+']'+','+'['+ @x1 +'S'+']'  As varchar))
+set @termcd1 = (select Cast( ''''+ @x + 'F' +''''+','+''''+ @x1 +'W'+''''+','+''''+ @x1 +'S'+''''  As varchar))

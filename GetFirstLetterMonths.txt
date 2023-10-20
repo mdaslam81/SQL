@@ -1,0 +1,17 @@
+SELECT DISTINCT STUFF(CONVERT(VARCHAR(6),C.CreatedDate,112),5,0,'-') As CreatedDate,DATEPART(MM,c.CreatedDate) As Month
+FROM 
+(
+Select DISTINCT TR.RecordNumber,TR.ReferralSourceID,tr.ReferralID,tr.ReferralStatusID,TR.CreatedDate 
+FROM Collections_Receivables.[Transaction] TR
+INNER JOIN (
+select LH.LetterHistoryID, LH.RecordNumber,LHDI.ReferralSourceID,LHDI.ReferralID, LH.LetterTypeID
+from Collections_Receivables.[LetterHistory] LH 
+INNER JOIN Collections_Receivables.[LetterHistoryDepartmentInfo] LHDI 
+on LHDI.LetterHistoryID = LH.LetterHistoryID where LetterTypeID <> 1 ) B
+ON tr.RecordNumber = b.RecordNumber
+AND TR.ReferralSourceID = B.ReferralSourceID
+AND TR.ReferralID = B.ReferralID
+WHERE TR.OutStandingAmount >0 
+and TR .DoNotSendFirstLetter=0 
+and TR .ReferralStatusID=1 ) c 
+ORDER BY MONTH Desc

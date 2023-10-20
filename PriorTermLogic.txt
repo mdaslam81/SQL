@@ -1,0 +1,23 @@
+declare @trm1 varchar(10) ,
+		@trm2 varchar(10) ,
+		@trm3 varchar(10), 
+		@trmPop varchar(4)
+
+declare @term_seq_nm int 
+--declare @trm varchar(10) = '20W'
+select @term_seq_nm = td.TERM_SEQ_NUM
+from sr0tdt td
+where td.TERM_CD = '20F'
+
+Select * from (
+select  sx.TERM_CD,
+			 td.TERM_SEQ_NUM,
+			 row_number() over ( order by  td.TERM_SEQ_NUM desc ) rnm
+from SR0SXT sx  
+		join sr0tdt td on sx.TERM_CD = td.TERM_CD
+where ses_cd = 'RG'
+AND   td.TERM_SEQ_NUM  between  @term_seq_nm - 3 and @term_seq_nm
+and   right(sx.term_cd,1) <> '2') A 
+where rnm =2 
+
+order by TERM_SEQ_NUM desc
