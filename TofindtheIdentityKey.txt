@@ -1,0 +1,6 @@
+select COLUMN_NAME, TABLE_NAME
+from INFORMATION_SCHEMA.COLUMNS
+where TABLE_SCHEMA = 'SLSC_Receivables'
+and COLUMNPROPERTY(object_id(Table_schema+'.'+TABLE_NAME), COLUMN_NAME, 'IsIdentity') = 1
+order by TABLE_NAME
+

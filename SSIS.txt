@@ -1,0 +1,10 @@
+Select A.name As PackageName
+,Substring(PropValue, patindex('%Hubble%', propvalue),50) As SharedFolderName from  (
+       SELECT  t.name ,
+       Props.Prop.value('.', 'nvarchar(max)')  as PropValue
+FROM    
+        ( SELECT [name],CAST(CAST([packagedata] as varbinary(max)) as xml) AS pkgXML
+FROM [msdb].[dbo].[sysssispackages])  t
+       
+CROSS    APPLY pkgXML.nodes('./*') Props(Prop) )A 
+where A.Propvalue like '%Hubble%'

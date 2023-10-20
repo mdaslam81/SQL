@@ -1,0 +1,6 @@
+GRANT EXECUTE    ON SCHEMA::[dbo] TO [USER_S01]
+
+
+GRANT SELECT ON SCHEMA :: fellowship to [UCLANET\iacwebsa]
+
+GRANT EXECUTE ON SCHEMA :: fellowship to [UCLANET\iacwebsa]

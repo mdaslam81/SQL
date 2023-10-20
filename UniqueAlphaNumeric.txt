@@ -1,0 +1,79 @@
+BEGIN
+--Generate a 6 digit unique key by applying below logic
+-- character 1: Alphabet or a number. Generate random number between 0 and 10. If the number is greater than 5, random alphabet else random number
+-- 2nd thru 6th characters : generate 6 characters from seconds and milliseconds part of current time (mm/dd/yyyy hh:mm:ss:ms). Milliseconds is usually 3 characters long
+-- character 2, 4 and 6: numbers
+-- character 3 : generate alphabet by adding number at position 3 to 65
+-- character 5 : generate alphabet by adding number at position 5 to 65
+
+DECLARE @currentDate AS DATETIME = GETDATE()
+DECLARE @seconds AS VARCHAR(2)
+DECLARE @milliSeconds AS VARCHAR(3)
+DECLARE @firstChar AS VARCHAR(1)
+--flag to generate first char as alphabet/number
+DECLARE @fl_alphaChar AS BIT
+--key to hold temporary 6 digit key
+DECLARE @tempKey AS VARCHAR(6)
+--final 6 digit key
+DECLARE @confirmationKey AS VARCHAR(6)
+
+IF ROUND(RAND() * 10, 0) > 5 
+BEGIN
+  SET @fl_alphaChar = 1
+END
+
+IF @fl_alphaChar = 1
+BEGIN
+--generate random alphabet as first character
+  SET @firstChar = CHAR(CAST((90 - 65 )*RAND() + 65 AS INTEGER))
+END
+ELSE
+BEGIN
+       --generate random number b/w 1 and 9 as first character
+       DECLARE @Upper INT = 1
+       DECLARE @Lower INT = 9
+       
+       SET @firstChar = ROUND(((@Upper - @Lower -1) * RAND() + @Lower), 0)
+END
+
+SET @seconds = DATEPART(ss, getdate())
+SET @milliSeconds = DATEPART(ms, getdate())
+
+IF @seconds < 10
+BEGIN
+  SET @seconds = '0' + @seconds
+END
+
+--Make milliseconds 3 characters long
+IF LEN(@milliSeconds) = 1
+BEGIN
+  SET @milliSeconds = '00' + @milliSeconds
+END
+--Make milliseconds 3 characters long
+IF LEN(@milliSeconds) = 2
+BEGIN
+  SET @milliSeconds = '0' + @milliSeconds
+END
+
+SET @tempKey = @firstChar + @seconds + @milliSeconds
+SET @confirmationKey = SUBSTRING(@tempKey, 1, 1)
+DECLARE @startIndex AS INT = 2
+
+WHILE @startIndex < 7
+BEGIN
+IF @startIndex = 3 OR @startIndex = 5
+       BEGIN
+       --characters 3 and 5: add the number at this position to 65 and generate character corresponding to it
+              SET @confirmationKey = @confirmationKey + CHAR(65 + SUBSTRING(@tempKey, @startIndex, 1))
+       END
+ELSE
+       BEGIN
+       --characters 2, 4 and 6 - numbers
+              SET @confirmationKey = @confirmationKey + SUBSTRING(@tempKey, @startIndex, 1)
+       END
+
+SET @startIndex = @startIndex + 1
+END
+
+PRINT @confirmationKey
+END

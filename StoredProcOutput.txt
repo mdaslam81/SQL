@@ -1,0 +1,9 @@
+DECLARE @SalesYTDBySalesPerson money;
+-- Execute the procedure specifying a last name for the input parameter
+-- and saving the output value in the variable @SalesYTDBySalesPerson
+EXECUTE Sales.uspGetEmployeeSalesYTD
+    N'Blythe', @SalesYTD = @SalesYTDBySalesPerson OUTPUT;
+-- Display the value returned by the procedure.
+PRINT 'Year-to-date sales for this employee is ' + 
+    convert(varchar(10),@SalesYTDBySalesPerson);
+GO

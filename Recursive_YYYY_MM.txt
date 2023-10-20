@@ -1,0 +1,13 @@
+DECLARE @Startdate as DATE = '01/01/2016'
+, @EndDate as date = '01/01/2018';
+
+WITH YearMonthList as
+(
+    select @startdate as YearMonth
+	union all
+	select DATEADD(MONTH,1,YearMonth) as YearMonth
+	from YearMonthList
+	where 1 =1 and DATEDIFF(month,YearMonth,@EndDate) > 0
+)
+
+select FORMAT(YearMonth,'yyyy-MM') as yearmonthperiod from YearMonthList

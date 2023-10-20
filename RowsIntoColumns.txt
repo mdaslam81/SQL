@@ -1,0 +1,51 @@
+Select 
+Stuff((Select ',' + cast([ResearchCenterID]As Varchar) from
+[ApplicationResearchCenter]
+where ApplicationID = 3
+FOR XML PATH('')),1,1,'')
+
+
+columns into rows
+SELECT CG.CategoryGroupID,fn.item
+FROM CategoryGroups CG
+CROSS APPLY fnSplit( CG.CategoryKeyGroupID,',') As fn
+
+
+Declare @categoryName varchar(Max)
+
+Select @categoryName = COALESCE(@categoryName + ',', '') + CAST(CategoryKeyGroupID AS nvarchar(max))
+from CategoryGroups
+
+Select @categoryName
+
+
+
+
+
+SELECT ReportId, Email = 
+    STUFF((SELECT ', ' + Email
+           FROM your_table b 
+           WHERE b.ReportId = a.ReportId 
+          FOR XML PATH('')), 1, 2, '')
+FROM your_table a
+GROUP BY ReportId
+
+go
+
+	(Select profileID, (Name +  Contact + Email) As Contact  from (
+											Select vp.ProfileID As profileID
+											--,'Name:'+ (ltrim(rtrim(p.CallerFirstName)) +' '+ ISNULL(p.CallerLastName,'')) + ',' As Name 
+											, CASE WHEN (p.CallerFirstName +''+ ISNULL(p.CallerLastName,'')) <> '' THEN 'Name:'+ (ltrim(rtrim(p.CallerFirstName)) +' '+ ISNULL(p.CallerLastName,'')) + ',' ELSE '' END AS NAME
+											, ISNULL(VP.Contact+',','') As Contact 
+											, Case when P.CallerEmailAddress<>'' then 'Email:'+ (ltrim(rtrim(P.CallerEmailAddress))+',' ) else '' end  As Email
+											FROM pfm_prod.dbo.Profile p 
+											left JOIN
+											(SELECT ProfileID, Contact = 
+											STUFF((SELECT ', ' + Contact 
+											FROM pfm_prod.dbo.vProfileContact b 
+											WHERE b.ProfileID = a.ProfileID 
+											FOR XML PATH('')), 1, 2, '')
+											FROM pfm_prod.dbo.vProfileContact a
+											GROUP BY ProfileID ) vp
+											on P.ID = vp.profileID ) K
+											)H

@@ -1,0 +1,117 @@
+select * from  sys.synonyms order by name
+go
+SELECT name AS synonym_name,
+base_object_name AS synonym_definition,
+COALESCE (PARSENAME (base_object_name, 4), @@servername) AS server_name,
+COALESCE (PARSENAME (base_object_name, 3), DB_NAME (DB_ID ())) AS DB_name,
+COALESCE (PARSENAME (base_object_name, 2), SCHEMA_NAME (SCHEMA_ID ())) AS schema_name,
+PARSENAME (base_object_name, 1) AS table_name,
+create_date,
+modify_date
+FROM sys.synonyms
+
+go
+synonym_name                    Name of the synonyms
+server_name                         Name of the server
+synonym_definition          Details of the synonyms
+DB_name                              Name of the database
+schema_name                      Name of the schema
+table_name                            Name of the table
+create_date                           Creation date of the synonyms
+modify_date                          Modification date of the synonyms
+
+Although there are many other ways to get this info, here is a stored procedure for looping through all the databases and returning to you all the synonyms into the database;
+CREATE PROCEDURE [dbo].[sp_synonym_details]
+@server VARCHAR (100)
+WITH
+EXEC AS CALLER
+AS
+IF EXISTS
+(SELECT 1
+FROM tempdb.dbo.sysobjects
+WHERE [name] LIKE ‘%DBTemp’ AND [type] = ‘u‘)
+BEGIN
+DROP TABLE ##DBTemp
+END
+
+DECLARE
+@SQL     NVARCHAR (1000),
+@Count   INT,
+@Loop   INT,
+@Name   NVARCHAR (100)
+
+SELECT [name], 0 process
+INTO ##DBTemp
+FROM sys.databases
+WHERE [name] NOT IN (‘msdb’, ‘master’, ‘model’)
+ORDER BY [name]
+
+CREATE TABLE #Temp
+(
+DBName               VARCHAR (100),
+synonymName           VARCHAR (100),
+synonymDefinition VARCHAR (100),
+referenceServerName   VARCHAR (100),
+referenceDBName       VARCHAR (100),
+referenceSchemaName   VARCHAR (100),
+referenceObjectName   VARCHAR (100),
+createDate           DATETIME,
+modifyDate          DATETIME
+)
+
+SET @Count =
+(SELECT count (*)
+FROM ##DBTemp
+WHERE process = 0)
+SET @Loop = 1
+
+WHILE @Loop <= @Count
+BEGIN
+SET @Name =
+(SELECT TOP 1 [name]
+FROM ##DBTemp
+WHERE process = 0)
+SET @SQL =
+‘insert into #Temp
+(DBName  ,
+synonymName         ,
+referenceServerName ,
+referenceDBName    ,
+referenceSchemaName             ,
+referenceObjectName,
+createDate ,
+modifyDate
+)
+(
+SELECT
+”’
++ @Name
++ ”’ as DBName,
+name as synonymName,
+base_object_name AS synonymDefinition,
+COALESCE(PARSENAME(base_object_name,4),@@servername) AS referenceServerName,
+COALESCE(PARSENAME(base_object_name,3),DB_NAME(DB_ID())) AS referenceDBName,
+COALESCE(PARSENAME(base_object_name,2),SCHEMA_NAME(SCHEMA_ID())) AS referenceSchemaName,
+PARSENAME(base_object_name,1) AS referenceObjectName ,
+create_date AS createDate,
+modify_date AS modifyDate
+FROM ‘
++ @Name
++ ‘.sys.synonyms
+Where COALESCE(PARSENAME(base_object_name,4),@@servername)=”’
++ @server
++ ”’
+)’
+
+EXEC (@SQL)
+SET @Loop = @Loop + 1
+
+UPDATE ##DBTemp
+SET process = 1
+WHERE [name] = @Name
+END
+
+DROP TABLE ##DBTemp
+
+SELECT * FROM #Temp
+GO

@@ -1,0 +1,209 @@
+Exec [saweb_FAO_RPT_UGZeroUnitsCensusReport] @Acad_term = '14S'
+
+2014 14 A , ( 13F,14W,14S)
+
+Text
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE [dbo].[saweb_FAO_RPT_UGZeroUnitsCensusReport]
+(
+	@Acad_term varchar(3)
+)
+AS
+/**********************************************************************************************************************
+Creation Date :02/10/2014  Created By : Mohammed Aslam
+Purpose : 
+Database :
+OutPut Parameters : None
+Return Status : None
+Execution Sample : Exec [saweb_FAO_RPT_UGZeroUnitsCensusReport] @Acad_term = '14S'
+Data Modification
+Updates : 
+	Date                       Author                       purpose
+ ------------              ------------------           ---------------------
+***********************************************************************************************************************/
+
+
+BEGIN
+
+	SET NOCOUNT ON 
+
+	DECLARE @disb_term VARCHAR(6)
+           ,@AwdYear varchar(4)
+		   ,@AwdPer varchar(4)
+		   ,@AwdYY varchar(2)
+    DECLARE @sql VARCHAR(MAX)
+
+	IF @Acad_term LIKE '%W' OR @Acad_term LIKE '%S'
+	BEGIN 
+		SET @AwdYear = (SELECT '20' + SUBSTRING (@Acad_term,1,2) )
+		SET @AwdPer = (SELECT  SUBSTRING (@Acad_term,1,2) + 'A' )
+	END
+
+	IF @Acad_term LIKE '%F' 
+	BEGIN 
+	    Set @AwdYY =  (Select (SUBSTRING (@Acad_term,1,2))+ 1  )
+		SET @AwdYear = (SELECT '20' +@AwdYY ) 
+		SET @AwdPer = (SELECT @AwdYY + 'A' ) 
+	END
+
+	--Select @AwdYear,@AwdPer
+
+	SET @disb_term =  CASE WHEN @Acad_term LIKE '%W' THEN 'WINT Q'
+								 WHEN @Acad_term LIKE '%F' THEN 'FALL Q'
+								 WHEN @Acad_term LIKE '%S' THEN 'SPRG Q' END 
+											
+IF @Acad_term LIKE '%W' 
+	BEGIN 
+		SELECT @sql=
+	'SELECT * FROM OPENQUERY(qdb,
+	''SELECT A.stu_payment_stat
+		, B.stu_id
+		, B.stu_full_name
+		, B.fa_career
+		, B.fall_census_unit
+		, B.win_census_unit
+		, B.spr_census_unit
+		, B.spcl_pgm
+		, C.aid_id
+		, C.earn_pd_amt
+		, A.stu_withdraw_cd
+		, stu_withdraw_eff_dt = CASE WHEN A.stu_withdraw_eff_dt =''''1900-01-01'''' THEN NULL
+								    WHEN A.stu_withdraw_eff_dt =''''1800-01-01'''' THEN NULL
+									ELSE A.stu_withdraw_eff_dt END 
+		, A.acad_term
+		, B.awd_yr
+		, B.awd_per
+		, B.pkg_stat_cd
+		, D.awd_type_cd
+		, D.aid_source_cd
+		, C.disb_term
+		, A.eap_stu_fl
+		FROM qdb.dbo.fa_stu_term As A 
+		INNER JOIN qdb.dbo.fa_awd_process As B
+		ON A.stu_id = B.stu_id
+		AND A.awd_yr = B.awd_yr 
+		INNER JOIN qdb.dbo.fa_awd_disb As C
+		ON B.stu_id = C.stu_id
+		AND B.awd_yr = C.awd_yr
+		INNER JOIN qdb.dbo.fa_aid_id_attr As D
+		ON C.aid_id = D.aid_id
+		WHERE B.awd_yr = '''''+@AwdYear +'''''
+		AND B.awd_per='''''+@AwdPer+'''''
+		AND B.fa_career = ''''U''''
+		AND B.win_census_unit =0
+		AND D.aid_id NOT LIKE  ''''%X%''''
+		AND C.earn_pd_amt > 0 
+		AND A.acad_term = '''''+@Acad_term+'''''
+		AND B.pkg_stat_cd IN (''''5'''',''''9'''')
+		AND D.awd_type_cd IN (''''G'''',''''L'''',''''S'''')
+		AND D.aid_source_cd IN (''''F'''',''''S'''',''''I'''')
+		AND C.disb_term = '''''+@disb_term +'''''
+		ORDER BY B.win_census_unit ,B.stu_id Asc '')'
+	
+	END
+
+	
+ELSE IF @Acad_term LIKE '%F' 
+	BEGIN 
+		SELECT @sql=
+	'SELECT * FROM OPENQUERY(qdb,
+	''SELECT A.stu_payment_stat
+		, B.stu_id
+		, B.stu_full_name
+		, B.fa_career
+		, B.fall_census_unit
+		, B.win_census_unit
+		, B.spr_census_unit
+		, B.spcl_pgm
+		, C.aid_id
+		, C.earn_pd_amt
+		, A.stu_withdraw_cd
+		, stu_withdraw_eff_dt = CASE WHEN A.stu_withdraw_eff_dt =''''1900-01-01'''' THEN NULL
+								WHEN A.stu_withdraw_eff_dt =''''1800-01-01'''' THEN NULL
+								ELSE A.stu_withdraw_eff_dt END 
+		, A.acad_term
+		, B.awd_yr
+		, B.awd_per
+		, B.pkg_stat_cd
+		, D.awd_type_cd
+		, D.aid_source_cd
+		, C.disb_term
+		, A.eap_stu_fl
+		FROM qdb.dbo.fa_stu_term As A 
+		INNER JOIN qdb.dbo.fa_awd_process As B
+		ON A.stu_id = B.stu_id
+		AND A.awd_yr = B.awd_yr 
+		INNER JOIN qdb.dbo.fa_awd_disb As C
+		ON B.stu_id = C.stu_id
+		AND B.awd_yr = C.awd_yr
+		INNER JOIN qdb.dbo.fa_aid_id_attr As D
+		ON C.aid_id = D.aid_id
+		WHERE B.awd_yr = '''''+@AwdYear +'''''
+		AND B.awd_per='''''+@AwdPer+'''''
+		AND B.fa_career = ''''U''''
+		AND B.fall_census_unit =0
+		AND D.aid_id NOT LIKE  ''''%X%''''
+		AND C.earn_pd_amt > 0 
+		AND A.acad_term = '''''+@Acad_term+'''''
+		AND B.pkg_stat_cd IN (''''5'''',''''9'''')
+		AND D.awd_type_cd IN (''''G'''',''''L'''',''''S'''')
+		AND D.aid_source_cd IN (''''F'''',''''S'''',''''I'''')
+		AND C.disb_term = '''''+@disb_term +'''''
+		ORDER BY B.win_census_unit ,B.stu_id Asc '')'
+	END
+
+ELSE IF @Acad_term LIKE '%S' 
+
+	BEGIN 
+		SELECT @sql=
+		'SELECT * FROM OPENQUERY(qdb,
+	''SELECT A.stu_payment_stat
+		, B.stu_id
+		, B.stu_full_name
+		, B.fa_career
+		, B.fall_census_unit
+		, B.win_census_unit
+		, B.spr_census_unit
+		, B.spcl_pgm
+		, C.aid_id
+		, C.earn_pd_amt
+		, A.stu_withdraw_cd
+		, stu_withdraw_eff_dt = CASE WHEN A.stu_withdraw_eff_dt =''''1900-01-01'''' THEN NULL
+								WHEN A.stu_withdraw_eff_dt =''''1800-01-01'''' THEN NULL
+								ELSE A.stu_withdraw_eff_dt END 
+		, A.acad_term
+		, B.awd_yr
+		, B.awd_per
+		, B.pkg_stat_cd
+		, D.awd_type_cd
+		, D.aid_source_cd
+		, C.disb_term
+		, A.eap_stu_fl
+		FROM qdb.dbo.fa_stu_term As A 
+		INNER JOIN qdb.dbo.fa_awd_process As B
+		ON A.stu_id = B.stu_id
+		AND A.awd_yr = B.awd_yr 
+		INNER JOIN qdb.dbo.fa_awd_disb As C
+		ON B.stu_id = C.stu_id
+		AND B.awd_yr = C.awd_yr
+		INNER JOIN qdb.dbo.fa_aid_id_attr As D
+		ON C.aid_id = D.aid_id
+		WHERE B.awd_yr = '''''+@AwdYear +'''''
+		AND B.awd_per='''''+@AwdPer+'''''
+		AND B.fa_career = ''''U''''
+		AND B.spr_census_unit=0
+		AND D.aid_id NOT LIKE  ''''%X%''''
+		AND C.earn_pd_amt > 0 
+		AND A.acad_term = '''''+@Acad_term+'''''
+		AND B.pkg_stat_cd IN (''''5'''',''''9'''')
+		AND D.awd_type_cd IN (''''G'''',''''L'''',''''S'''')
+		AND D.aid_source_cd IN (''''F'''',''''S'''',''''I'''')
+		AND C.disb_term = '''''+@disb_term +'''''
+		ORDER BY B.win_census_unit ,B.stu_id Asc '')'
+	
+	END
+EXEC (@SQL) 
+END
+
+
+

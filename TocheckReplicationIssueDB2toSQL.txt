@@ -1,0 +1,19 @@
+
+select top 10
+       tb.*
+from   dbo.ua0mvt tb
+where  tb.term_cd = '22f'
+order by
+       last_upd_dt desc
+       ;
+	   select tb.*
+from   openquery(DB2PSEC,
+                '
+                select tb.*
+                from   DB2P.UA0PROD.UA0MVT tb
+where  tb.term_cd = ''22F''
+   order by
+       last_upd_dt desc
+                fetch first 10 rows only
+                '
+                ) tb

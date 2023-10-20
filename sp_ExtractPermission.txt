@@ -1,0 +1,1 @@
+select 'Grant exec on '+ [Specific_Schema]+'.'+[Specific_Name] + ' to [AppDev_SOA]'from information_schema.ROUTINES where specific_name like 'SOA%'  

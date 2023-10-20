@@ -1,0 +1,6 @@
+   EXECUTE msdb.dbo.sysmail_add_principalprofile_sp
+    @principal_name = 'srweb',
+    @profile_name = 'WebService',
+    @is_default = 1 ;
+
+the Principla name should be granted for any sp_sendmail is assigned

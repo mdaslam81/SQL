@@ -1,0 +1,17 @@
+
+Declare @Month int
+Set @Month = (SELECT MONTH(GETDATE()))
+
+IF @Month >= 7
+BEGIN 
+	SELECT YEAR(GETDATE()) as Years
+	UNION  
+	SELECT YEAR(GETDATE()) + 1  As Years
+END 
+ELSE 
+BEGIN 
+    SELECT YEAR(GETDATE()) as Years
+
+END 
+
+SELECT MONTH(GETDATE())

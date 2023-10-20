@@ -1,0 +1,1 @@
+GRANT EXEC ON TYPE::[dbo].[StringValues] TO [uclanet\rvaddula]

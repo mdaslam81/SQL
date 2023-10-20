@@ -1,0 +1,10 @@
+[RO_Transcript].[ETQueueControlErrorLog]
+
+
+SELECT  s.Name, u.*
+FROM    sys.schemas s
+        INNER JOIN sys.sysusers u
+            ON u.uid = s.principal_id
+			go
+
+			ALTER AUTHORIZATION ON SCHEMA:: SOA TO dbo;

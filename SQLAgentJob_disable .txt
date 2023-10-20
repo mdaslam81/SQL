@@ -1,0 +1,38 @@
+Below is the script which gives the list of failed jobs as well as update statement to disable the failed jobs:
+
+USE MSDB
+GO
+
+--Declare Table Variable
+DECLARE @FailedJobs TABLE
+(NAME VARCHAR(500),
+[MESSAGE] VARCHAR(2000),
+LASTRUNDATE VARCHAR(500),
+LASTRUNTIME VARCHAR(500))
+
+-- Getting Failed Jobs
+INSERT INTO @FailedJobs
+(NAME,[MESSAGE],LASTRUNDATE,LASTRUNTIME)
+
+
+SELECT 
+    J.[NAME] AS [NAME],  
+    H.MESSAGE AS [MESSAGE],  
+    H.RUN_DATE AS LASTRUNDATE,   
+    H.RUN_TIME AS LASTRUNTIME
+FROM SYSJOBHISTORY H  
+    INNER JOIN SYSJOBS J
+              ON H.JOB_ID = J.JOB_ID  
+  WHERE J.ENABLED = 1   
+        AND H.INSTANCE_ID IN 
+        (SELECT MAX(H.INSTANCE_ID)  
+            FROM SYSJOBHISTORY H GROUP BY (H.JOB_ID))  
+        AND H.RUN_STATUS = 0  
+                            
+ 
+  --Disabling the Failed Jobs
+  UPDATE SJ
+  SET [enabled] = 0
+  FROM sysjobs SJ
+       INNER JOIN @FailedJobs F
+              ON SJ.NAME = F.NAME

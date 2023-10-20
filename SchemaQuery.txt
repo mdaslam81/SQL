@@ -1,0 +1,47 @@
+Select * from ( 
+SELECT DB_NAME(st.dbid) AS database_name, 
+    OBJECT_SCHEMA_NAME(st.objectid, st.dbid) AS schema_name,
+    OBJECT_NAME(st.objectid, st.dbid) AS object_name, 
+    st.text AS query_statement
+FROM sys.dm_exec_query_stats AS qs
+CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) AS st
+WHERE st.objectid IS NOT NULL) A
+where A.schema_name = 'RO_PreferredName'
+and A.database_name = 'SAQA'
+
+
+
+
+Select * from (
+Select QuoteName(OBJECT_SCHEMA_NAME(object_id))+ '.'+QuoteName(Name) As objects from sys.objects ) A
+where A.objects like '%ReceivablesDB%'
+
+-- Permisson level of Schema
+SELECT * FROM fn_my_permissions('SLSC_Receivables', 'SCHEMA')
+
+
+
+CREATE DATABASE listschema
+go
+USE listschema
+go
+CREATE SCHEMA TestSchema
+go
+CREATE USER TestUser WITHOUT LOGIN
+go
+GRANT SELECT ON SCHEMA::TestSchema TO TestUser
+DENY INSERT ON SCHEMA::TestSchema TO TestUser
+go
+SELECT state_desc, permission_name, 'ON', class_desc,
+SCHEMA_NAME(major_id),
+'TO', USER_NAME(grantee_principal_id)
+FROM sys.database_permissions AS Perm
+JOIN sys.database_principals AS Prin
+ON Perm.major_ID = Prin.principal_id AND class_desc = 'SCHEMA'
+WHERE major_id = SCHEMA_ID('TestSchema')
+AND grantee_principal_id = user_id('TestUser')
+--AND    permission_name = 'SELECT'
+go
+USE tempdb
+go
+DROP DATABASE listschema

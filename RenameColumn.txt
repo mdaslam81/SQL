@@ -1,0 +1,1 @@
+Sp_rename 'SR0RET.RCPN_ET_TYP','RCPN_ET_TYP_CD','COLUMN'
