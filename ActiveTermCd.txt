@@ -1,0 +1,1 @@
+srdb_sr2.dbo.soc_get_activeTerm

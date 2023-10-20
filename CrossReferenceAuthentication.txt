@@ -1,0 +1,8 @@
+use srdb_sr2_qa
+go
+GRANT AUTHENTICATE to APPDEV;
+
+go
+use master
+go
+Alter database [srdb_sr2_dev]  SET TRUSTWORTHY ON

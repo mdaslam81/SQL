@@ -1,0 +1,12 @@
+
+
+go
+use master
+go
+Alter database [srdb_sr2_dev]  SET TRUSTWORTHY ON
+go
+execute as user ='ecrdev'
+go
+Select top 10 * from ro_latest_active_reg_enrld
+go
+select user_name() 

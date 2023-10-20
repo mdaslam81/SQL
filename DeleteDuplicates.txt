@@ -1,0 +1,47 @@
+SELECT * FROM dbo.duplicateTest 
+
+DECLARE @id int = 1
+
+IF EXISTS (SELECT count(*) FROM dbo.duplicateTest WHERE ID = @id HAVING count(*) > 1 )
+BEGIN
+   SET ROWCOUNT 1 
+   DELETE FROM dbo.duplicateTest WHERE ID = @id 
+   SET ROWCOUNT 0 
+END
+
+SELECT * FROM dbo.duplicateTest
+go
+
+DELETE FROM dbo.duplicateTest
+INSERT INTO dbo.duplicateTest VALUES(1, 'Bob','Smith') 
+INSERT INTO dbo.duplicateTest VALUES(2, 'Dave','Jones') 
+INSERT INTO dbo.duplicateTest VALUES(3, 'Karen','White') 
+INSERT INTO dbo.duplicateTest VALUES(1, 'Bob','Smith')
+INSERT INTO dbo.duplicateTest VALUES(1, 'Bob','Smith')	
+	
+SELECT * FROM dbo.duplicateTest 
+
+DECLARE @id int = 1
+
+DELETE TOP (SELECT COUNT(*) -1 FROM dbo.duplicateTest WHERE ID = @id)  
+FROM dbo.duplicateTest  
+WHERE ID = @id
+
+SELECT * FROM dbo.duplicateTest 
+
+go
+DELETE FROM dbo.duplicateTest
+INSERT INTO dbo.duplicateTest VALUES(1, 'Bob','Smith') 
+INSERT INTO dbo.duplicateTest VALUES(2, 'Dave','Jones') 
+INSERT INTO dbo.duplicateTest VALUES(3, 'Karen','White') 
+INSERT INTO dbo.duplicateTest VALUES(1, 'Bob','Smith')	
+	
+SELECT * FROM dbo.duplicateTest 
+
+DECLARE @id int = 1
+
+IF EXISTS (SELECT count(*) FROM dbo.duplicateTest WHERE ID = @id HAVING count(*) > 1 )
+   DELETE TOP(1) FROM dbo.duplicateTest WHERE ID = @id 
+
+SELECT * FROM dbo.duplicateTest
+go

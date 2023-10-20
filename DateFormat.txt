@@ -1,0 +1,2 @@
+SELECT FORMAT(CAST(StartTime AS DATETIME),'hh:mm tt') AS StartTime
+FROM TableA

@@ -1,0 +1,138 @@
+* To prevent any potential data loss issues, you should review this script in detail before running it outside the context of the database designer.*/
+BEGIN TRANSACTION
+SET QUOTED_IDENTIFIER ON
+SET ARITHABORT ON
+SET NUMERIC_ROUNDABORT OFF
+SET CONCAT_NULL_YIELDS_NULL ON
+SET ANSI_NULLS ON
+SET ANSI_PADDING ON
+SET ANSI_WARNINGS ON
+COMMIT
+BEGIN TRANSACTION
+GO
+ALTER TABLE RCO.Signatory
+	DROP CONSTRAINT FK_Signatory_SignatoryAgreement
+GO
+ALTER TABLE RCO.SignatoryAgreement SET (LOCK_ESCALATION = TABLE)
+GO
+COMMIT
+BEGIN TRANSACTION
+GO
+ALTER TABLE RCO.Signatory
+	DROP CONSTRAINT FK_Signatory_LU_SignatoryStatus
+GO
+ALTER TABLE RCO.LU_SignatoryStatus SET (LOCK_ESCALATION = TABLE)
+GO
+COMMIT
+BEGIN TRANSACTION
+GO
+ALTER TABLE RCO.Signatory
+	DROP CONSTRAINT DF_Signatory_CreatedDate
+GO
+ALTER TABLE RCO.Signatory
+	DROP CONSTRAINT DF_Signatory_UpdatedDate
+GO
+CREATE TABLE RCO.Tmp_Signatory
+	(
+	SignatoryID int NOT NULL IDENTITY (1, 1),
+	RegistrationID int NULL,
+	UID char(9) NULL,
+	FirstName varchar(100) NULL,
+	LastName varchar(100) NULL,
+	AgreementID int NULL,
+	Quiz bit NULL,
+	AgreementAcceptedDate date NULL,
+	AgreementAcceptedTime time(7) NULL,
+	MemberStatusID int NULL,
+	SignatoryStatusID int NULL,
+	RoleID int NULL,
+	CreatedDate datetime NOT NULL,
+	UpdatedDate datetime NOT NULL,
+	CreatedBy varchar(100) NULL,
+	Updatedby varchar(100) NULL
+	)  ON [PRIMARY]
+GO
+ALTER TABLE RCO.Tmp_Signatory SET (LOCK_ESCALATION = TABLE)
+GO
+ALTER TABLE RCO.Tmp_Signatory ADD CONSTRAINT
+	DF_Signatory_CreatedDate DEFAULT (getdate()) FOR CreatedDate
+GO
+ALTER TABLE RCO.Tmp_Signatory ADD CONSTRAINT
+	DF_Signatory_UpdatedDate DEFAULT (getdate()) FOR UpdatedDate
+GO
+SET IDENTITY_INSERT RCO.Tmp_Signatory ON
+GO
+IF EXISTS(SELECT * FROM RCO.Signatory)
+	 EXEC('INSERT INTO RCO.Tmp_Signatory (SignatoryID, UID, FirstName, LastName, AgreementID, Quiz, AgreementAcceptedDate, AgreementAcceptedTime, MemberStatusID, SignatoryStatusID, RoleID, CreatedDate, UpdatedDate, CreatedBy, Updatedby)
+		SELECT SignatoryID, UID, FirstName, LastName, AgreementID, Quiz, AgreementAcceptedDate, AgreementAcceptedTime, MemberStatusID, SignatoryStatusID, RoleID, CreatedDate, UpdatedDate, CreatedBy, Updatedby FROM RCO.Signatory WITH (HOLDLOCK TABLOCKX)')
+GO
+SET IDENTITY_INSERT RCO.Tmp_Signatory OFF
+GO
+DROP TABLE RCO.Signatory
+GO
+EXECUTE sp_rename N'RCO.Tmp_Signatory', N'Signatory', 'OBJECT' 
+GO
+ALTER TABLE RCO.Signatory ADD CONSTRAINT
+	PK_Signatory PRIMARY KEY CLUSTERED 
+	(
+	SignatoryID
+	) WITH( PAD_INDEX = OFF, FILLFACTOR = 80, STATISTICS_NORECOMPUTE = ON, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+
+GO
+ALTER TABLE RCO.Signatory ADD CONSTRAINT
+	FK_Signatory_LU_SignatoryStatus FOREIGN KEY
+	(
+	SignatoryStatusID
+	) REFERENCES RCO.LU_SignatoryStatus
+	(
+	SignatoryStatusID
+	) ON UPDATE  NO ACTION 
+	 ON DELETE  NO ACTION 
+	
+GO
+ALTER TABLE RCO.Signatory ADD CONSTRAINT
+	FK_Signatory_SignatoryAgreement FOREIGN KEY
+	(
+	AgreementID
+	) REFERENCES RCO.SignatoryAgreement
+	(
+	AgreementID
+	) ON UPDATE  NO ACTION 
+	 ON DELETE  NO ACTION 
+	
+GO
+COMMIT
+
+go
+
+/* To prevent any potential data loss issues, you should review this script in detail before running it outside the context of the database designer.*/
+BEGIN TRANSACTION
+SET QUOTED_IDENTIFIER ON
+SET ARITHABORT ON
+SET NUMERIC_ROUNDABORT OFF
+SET CONCAT_NULL_YIELDS_NULL ON
+SET ANSI_NULLS ON
+SET ANSI_PADDING ON
+SET ANSI_WARNINGS ON
+COMMIT
+BEGIN TRANSACTION
+GO
+ALTER TABLE RCO.Registration SET (LOCK_ESCALATION = TABLE)
+GO
+COMMIT
+BEGIN TRANSACTION
+GO
+ALTER TABLE RCO.Signatory ADD CONSTRAINT
+	FK_Signatory_Registration FOREIGN KEY
+	(
+	RegistrationID
+	) REFERENCES RCO.Registration
+	(
+	RegistrationID
+	) ON UPDATE  NO ACTION 
+	 ON DELETE  NO ACTION 
+	
+GO
+ALTER TABLE RCO.Signatory SET (LOCK_ESCALATION = TABLE)
+GO
+COMMIT

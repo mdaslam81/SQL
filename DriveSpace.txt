@@ -1,0 +1,37 @@
+exec xp_fixeddrives
+--------------------
+
+create table #FreeSpace(
+ Drive char(1), 
+ MB_Free int)
+
+insert into #FreeSpace exec xp_fixeddrives
+
+select @MB_Free = MB_Free from #FreeSpace where Drive = 'C'
+
+-- Free Space on C drive Less than Threshold
+if @MB_Free < 1024
+  exec master.dbo.xp_sendmail 
+     @recipients ='greg.larsen@netzero.net',
+     @subject ='SERVER X - Fresh Space Issue on C Drive',
+     @message = 'Free space on C Drive 
+                 has dropped below 1 gig'
+
+select @MB_Free = MB_Free from #FreeSpace where Drive = 'F'
+
+-- Free Space on F drive Less than Threshold
+if @MB_Free < 2048 
+   exec master.dbo.xp_sendmail 
+     @recipients ='greg.larsen@netzero.net',
+     @subject ='SERVER X - Fresh Space Issue on C Drive',
+     @message = 'Free space on F Drive 
+                 has dropped below 2 gig'
+
+---------------------------------------------------------------------
+SELECT      sys.databases.name,
+            CONVERT(VARCHAR,SUM(size)*8/1024)+' MB' AS [Total disk space]
+FROM        sys.databases
+JOIN        sys.master_files
+ON          sys.databases.database_id=sys.master_files.database_id
+GROUP BY    sys.databases.name
+ORDER BY    sys.databases.name 

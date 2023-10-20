@@ -1,0 +1,12 @@
+if object_id('tempdb.dbo.Staging_Customers') is null
+begin
+create table tempdb.dbo.Staging_Customers
+(
+ FilePath varchar(255) 
+,CustName varchar(255) 
+,CustPhone varchar(255) 
+,CustEmail varchar(255) 
+)
+end
+
+truncate table tempdb.dbo.Staging_Customers

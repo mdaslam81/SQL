@@ -1,0 +1,12 @@
+SELECT Years
+,Months
+,Weeks
+,Min(DateCreated) OVER(PARTITION BY Weeks,Months,years)
+,Max(DateCreated) OVER(PARTITION BY Weeks,Months,years)from (
+SELECT DISTINCT DateName(YEAR,DateCreated)As Years
+,DateName(MONTH,DateCreated)As Months
+,DateDiff(week, Convert(CHAR(8), DateCreated, 121) + '01', DateCreated) + 1 As Weeks
+--,datepart(WEEK,DateCreated) %MONTH(DateCreated)
+,DateCreated 
+from [Profile] ) A 
+order by DateCreated

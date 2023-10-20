@@ -1,0 +1,10 @@
+;WITH cte AS (
+SELECT stud_no, MILS_date,awd_per
+, row_number() OVER(PARTITION BY stud_no, MILS_date,awd_per ORDER BY stud_no) AS [rn]
+FROM MILS
+)
+
+
+
+--select * from cte WHERE [rn] > 1
+DELETE from cte WHERE [rn] > 1

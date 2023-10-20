@@ -1,0 +1,23 @@
+Use Srdb_sr2
+go
+
+SELECT 'CREATE USER ' + '[' + Name +']'  + ' FOR LOGIN ' +'[' + Name +']'  FROM sys.server_principals
+where name not like '#%' order by name 
+
+
+
+GetRptAAwritingrequirement
+
+
+
+
+In the stored proc  “GetRptAAwritingrequirement” filters out the following code for  “Undergraduate Subject/ESLCode “ .Please let us know “ Do we need to add the ‘SZ’ “.
+
+
+sk.UG_SUBJ_A_ESL_CD IN ( 'SR', 'SRM', 'SA', 'S8', 'SE',
+                                            'SI', 'SL', 'EA', 'EB', 'EC', 'ED',
+                                            'EF', 'EG', 'ER', 'ERM', 'ES',
+                                            'ET', 'EV', 'EU', 'EW', 'EY', 'F1',
+                                            'F2', 'F3', 'F4 ' )
+                      OR sk.WRIT_I_REQ_CD IN ( 'R', 'M' )
+                      OR sk.WRIT_II_REQ_CD IN ( 'R', 'M' )

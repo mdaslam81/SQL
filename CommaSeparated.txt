@@ -1,0 +1,5 @@
+,STUFF((SELECT ',' + CAST([VisitReason].ReasonText AS varchar)
+           FROM [dbo].[ReasonProvided]
+inner join [dbo].[VisitReason] on [ReasonProvided].ReasonID = [VisitReason].ReasonID
+           WHERE i.IntakeID = [ReasonProvided].IntakeID
+           FOR XML PATH('')), 1 ,1, '') AS ValueList

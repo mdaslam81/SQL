@@ -1,0 +1,12 @@
+BACKUP DATABASE [Forms_Prod] TO  DISK = N'\\sauge.uclanet.ucla.edu\saitshare$\DB\Forms_Prod_10_12_2018.bak' WITH  COPY_ONLY, NOFORMAT, NOINIT,  
+NAME = N'Forms_Prod-Full Database Backup', SKIP, NOREWIND, NOUNLOAD,  STATS = 10
+GO
+
+
+BACKUP DATABASE [DocumentServices_Prod] TO  DISK = N'\\sauge.uclanet.ucla.edu\saitshare$\DB\DocumentServices_Prod_03_01_2021.bak' WITH  COPY_ONLY, NOFORMAT, NOINIT,  
+NAME = N'T1 DocumentServices_Prod', SKIP, NOREWIND, NOUNLOAD,  STATS = 10
+GO
+--\\sauge\saitshare$\DB
+
+
+F7527836

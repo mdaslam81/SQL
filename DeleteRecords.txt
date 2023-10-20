@@ -1,0 +1,64 @@
+CREATE PROCEDURE [dbo].[DeletequeueRequirementItem]
+AS
+/**********************************************************************************************************************
+Creation Date :04/30/2013  Created By : Mohammed Aslam
+Purpose :  Deletes the records in queueRequirementItem
+Database :
+OutPut Parameters : None
+Return Status : None
+Execution Sample : Exec [DeletequeueRequirementItem] 
+Data Modification
+Updates : 
+	Date                       Author                       purpose
+ ------------              ------------------           ---------------------
+***********************************************************************************************************************/
+BEGIN
+SET NOCOUNT ON
+	DECLARE @INTDays INT,@dtmDelete DATETIME
+
+	SELECT @INTDays = CAST(INTPurgedays As INT) FROM dbo.Dba_Parameters WITH(READUNCOMMITTED)
+	WHERE strParameterName = 'DeletequeueRequirementItem'
+
+	SET @dtmDelete = CONVERT(VARCHAR,DATEADD(DAY,@intdays *(-1),getdate()),112)
+    
+	INSERT INTO dbo.queueRequirementItem_Archive
+	  (
+		 itemID
+		,batchID
+		,createDate
+		,[status]
+		,studentUID
+		,dataElement
+		,dataValue
+		,msgXML
+		,verified
+	)
+	SELECT
+	A.itemID
+	,A.batchID
+	,A.createDate
+	,A.[status]
+	,A.studentUID
+	,A.dataElement
+	,A.dataValue
+	,A.msgXML
+	,A.verified
+	FROM dbo.queueRequirementItem A WITH(READUNCOMMITTED)
+	INNER JOIN dbo.queueRequirementBatch B WITH(READUNCOMMITTED)
+	ON A.batchID = B.batchID
+	WHERE B.createDate < @dtmDelete
+
+	SET ROWCOUNT 5000
+	DELETE A FROM dbo.queueRequirementItem A 
+	INNER JOIN dbo.queueRequirementBatch B 
+	ON A.batchID = B.batchID 
+	WHERE B.createDate < @dtmDelete
+   
+    WHILE @@ROWCOUNT = 5000
+	BEGIN 
+		DELETE A FROM dbo.queueRequirementItem A 
+		INNER JOIN dbo.queueRequirementBatch B 
+		ON A.batchID = B.batchID 
+		WHERE B.createDate < @dtmDelete
+	END
+END

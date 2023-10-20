@@ -1,0 +1,19 @@
+	CREATE PROCEDURE [dbo].[IsDatabaseAlmostFull]
+	AS
+	BEGIN
+	  DECLARE @CurrentSizeMB int
+	  DECLARE @MaxSizeMB int
+	  DECLARE @PercentageFull int
+	  SET NOCOUNT ON
+	  SET @PercentageFull = 0.90 /* Change this value */
+	  SELECT @CurrentSizeMB = size*8/1024,
+         @MaxSizeMB = max_size*8/1024
+	  FROM sys.database_files
+	  WHERE [file_id] = 1
+	  IF @CurrentSizeMB >= (@MaxSizeMB * @PercentageFull)
+	    RETURN 1 /* True */
+	  ELSE
+	    RETURN 0 /* False */
+	END
+
+	Select * from sys.database_files
