@@ -1,0 +1,384 @@
+Email Notification format
+
+USE [SAPROD]
+GO
+/****** Object:  StoredProcedure [dbo].[SentEmailNotificationToResLifeUIDChanges]    Script Date: 4/17/2024 9:45:36 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[SentEmailNotificationToResLifeUIDChanges]
+AS
+/**********************************************************************************************************************
+Creation Date :Date  Created By : Mohammed Aslam 
+Purpose : 
+Used By: SAIT
+Database :
+OutPut Parameters : None
+Return Status : None
+Execution Sample : Exec [SentEmailNotificationToResLifeUIDChanges]
+Updates : 
+Date                       Author                       purpose
+------------              ------------------           ---------------------
+7/16/2019                   MOHAMMED ASLAM              ADDED and XMLValue.value('/i[2]','varchar(20)') <> 'UC'
+7/25/2019                   Mohammed Aslam              Disable "NO UID CHANGE" jira it-18088
+1/2/2020                    Mohammed Aslam              Added Advocate.ResLifeUIDChangesHistory CH "CreatedDate".
+***********************************************************************************************************************/
+BEGIN 
+	SET NOCOUNT ON
+	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
+
+	DECLARE @DATE DATE = GETDATE()
+	
+
+	CREATE TABLE #ResultSet
+	(
+	 --UniversityID varchar(20)
+	 --,ID varchar(20)
+	 OldUID VARCHAR(20)
+	 ,NewUID VARCHAR(20));
+
+	WITH Split_Value(UniversityID,XMLValue)
+	As (
+	SELECT UniversityID
+	--,CONVERT(XML,'<i>'+REPLACE(UIDChange,'|','</i><i>')+'</i>') as XMLValue  
+	,CONVERT(XML,'<i>'+REPLACE(UIDChange,'|','</i><i>')+'</i>') as XMLValue  
+	FROM [HOUSING].[AdvocateJudicialSystemDEV].[Simplicity].[HousingResidents] A 
+	INNER JOIN dbo.[ID0UIT] B 
+	ON A.UniversityID = B.UCLA_id
+	WHERE B.ID_Active_Flag <> 'X'
+	--WHERE uidChange is not null 
+	)
+
+	INSERT INTO #ResultSet (
+	--UniversityID,
+	--ID,
+	OldUID,
+	NewUID)
+	SELECT 
+	--UniversityID As UID
+	--,XMLValue.value('/i[1]','varchar(20)') AS ID    
+	 XMLValue.value('/i[2]','varchar(20)') AS OldUID    
+	,XMLValue.value('/i[3]','varchar(20)') AS NewUID   
+	from Split_Value
+	where XMLValue.value('/i[2]','varchar(20)') <> ''
+	and XMLValue.value('/i[2]','varchar(20)') <> 'UC'
+	-- select * from #ResultSet
+
+	INSERT INTO Advocate.ResLifeUIDChangesHistory
+	(OldUID 
+	,NewUID
+	,CreatedDate)
+
+   SELECT RS.OldUID, RS.NewUID,@DATE
+   FROM #ResultSet RS
+   LEFT JOIN Advocate.ResLifeUIDChangesHistory CH
+   ON RS.OldUID = CH.OldUID
+   AND RS.NewUID = CH.NewUid
+   WHERE CH.OldUID IS NULL 
+
+
+
+	IF EXISTS (SELECT TOP 1 1 FROM  #ResultSet)
+	 --  BEGIN 
+		--DECLARE @recp_body VARCHAR(MAX)
+		--DECLARE @test_fl varchar(1)= 'N'
+  --      DECLARE @recp_subject      as varchar(150)   = case @test_fl
+  --                                                                  when 'y' then '[TESTONLY]: '
+  --                                                                  else          ''
+  --                                                                 end            +
+  --                                                                 'Advocate Reporting NO UID CHANGE Notification on'+' ' + CAST(CAST(GETDATE() AS SMALLDATETIME) AS VARCHAR)
+                                               
+  --                         ,@recp_to_list      as varchar(100)   = case @test_fl
+  --                                                                  when 'n' then 'Conduct@orl.ucla.edu;kchen@sait.ucla.edu;mdaslam@sait.ucla.edu'
+  --                                                                  else          'mdaslam@sait.ucla.edu'
+  --                                                                 end 
+  --                         ,@recp_cc_list      as varchar(100)   = case @test_fl
+  --                                                                  when 'n' then ''
+  --                                                                  else          'mdaslam@sait.ucla.edu'
+  --                                                                 end 
+	 --                      ,@donoreply_txt     as varchar(1000)  = '*********************************************************' + char(13) + char(10) +
+		--                                                           '---------------DO NOT REPLY TO THIS E-MAIL---------------' + char(13) + char(10) +
+		--                                                           'SAIT ResLife Email Notification,NO UID CHANGES TODAY           ' + char(13) + char(10) +                                                                                                       
+  
+                            
+		--                                                           '---------------DO NOT REPLY TO THIS E-MAIL---------------' + char(13) + char(10) +
+		--                                                           '*********************************************************'
+
+  --      --declare and set notification variables
+  --      select @recp_body = @donoreply_txt      + 
+  --                                      char(13) + char(10) +
+  --                                      char(13) + char(10) +
+  --                                      @recp_body
+
+
+
+  --      --command to send notification
+  --      exec msdb.dbo.sp_send_dbmail @profile_name      = 'NoReply'
+  --                                              ,@recipients        = @recp_to_list
+  --                                              ,@copy_recipients   = @recp_cc_list
+		--										--,@body_format = 'HTML'
+  --                                              ,@subject           = @recp_subject
+  --                                              ,@body              = @recp_body
+		
+	 --  END 
+
+	 -- ELSE 
+
+BEGIN 
+	
+	DECLARE @Body varchar(max)
+
+	DECLARE @TableHead varchar(max)
+
+	DECLARE @TableTail varchar(max)
+
+	Set @TableTail = '</table></body></html>';
+
+	--HTML layout--
+
+	Set @TableHead = '<html><head>' +
+
+	'<H2 style="color: #000000">Email Notification for UID Changes</H2>' +
+
+	'<style>' +
+
+	'td {border: solid black 1px;padding:5px;font-size:12pt;color:black;} ' +
+
+	'</style>' +
+
+	'</head>' +
+
+	'<body><table cellpadding=0 cellspacing=0 border=0>' +
+
+	'<tr bgcolor=#4682b4>'+
+
+	--'<td align=center><b>UniversityID</b></td>' +
+
+	--'<td align=center><b>ID</b></td>' +
+
+	'<td align=center><b>OldUID</b></td>' +
+
+	'<td align=center><b>NewUID</b></td>' + 
+
+	'<td align=center><b>CreatedDate</b></td></tr>';
+
+	--Select information for the Report--
+
+	Select @Body= (SELECT 
+--	td =UniversityID  
+--	,td =ID 
+	 td = RS.OldUID
+	, td = RS.NewUID
+	, td = CONVERT(date,CH.CreatedDate) 
+	FROM #ResultSet RS
+	INNER JOIN Advocate.ResLifeUIDChangesHistory CH
+    ON RS.OldUID = CH.OldUID
+    AND RS.NewUID = CH.NewUid
+	FOR XML raw('tr'),Elements)
+	
+
+	 --Replace the entity codes and row numbers
+
+	Set @Body = Replace(@Body, '_x0020_', space(1))
+
+	Set @Body = Replace(@Body, '_x003D_', '=')
+
+	Set @Body = Replace(@Body, '<tr><TRRow>1</TRRow>', '<tr bgcolor=#C6CFFF>')
+
+	Set @Body = Replace(@Body, '<TRRow>0</TRRow>', '')
+
+	Set @Body = @TableHead + @Body + @TableTail
+
+	--Select @Body
+
+	 declare @test_fl1 varchar(1)= 'N'
+	 declare @recp_subject1      as varchar(150)   = case @test_fl1
+																		when 'y' then '[TESTONLY]: '
+																		else          ''
+																	   end            +
+																	   'SAIT ResLife Email Notification,UID CHANGES TODAY '+' ' + CAST(CAST(GETDATE() AS SMALLDATETIME) AS VARCHAR)
+                                               
+							   ,@recp_to_list1      as varchar(100)   = case @test_fl1
+																		when 'n' then 'Conduct@orl.ucla.edu;kchen@sait.ucla.edu;mdaslam@sait.ucla.edu'
+																		else          'mdaslam@sait.ucla.edu'
+																	   end 
+							   ,@recp_cc_list1      as varchar(100)   = case @test_fl1
+																		when 'n' then ''
+																		else          'mdaslam@sait.ucla.edu'
+																	   end 	                    
+
+
+
+			--command to send notification
+			exec msdb.dbo.sp_send_dbmail @profile_name      = 'NoReply'
+													,@recipients        = @recp_to_list1
+													,@copy_recipients   = @recp_cc_list1
+													,@body_format = 'HTML'
+													,@subject           = @recp_subject1
+													,@body              = @Body
+
+		   END 
+
+	   DROP TABLE #ResultSet
+END 
+go
+USE [SAPROD]
+GO
+/****** Object:  StoredProcedure [dbo].[SentEmailNotificationToCpo_BruinbitesChanges]    Script Date: 4/17/2024 9:45:11 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[SentEmailNotificationToCpo_BruinbitesChanges]
+AS
+/**********************************************************************************************************************
+Creation Date :Date  Created By : Mohammed Aslam 
+Purpose : 
+Used By: SAIT
+Database :
+OutPut Parameters : None
+Return Status : None
+Execution Sample : Exec [SentEmailNotificationToCpo_BruinbitesChanges]
+Updates : 
+Date                       Author                       purpose
+------------              ------------------           ---------------------
+
+***********************************************************************************************************************/
+BEGIN 
+	SET NOCOUNT ON
+	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
+
+	DECLARE @DATE DATE = GETDATE()
+	
+	CREATE TABLE #ResultSet
+	( FutureEvents varchar(50)
+	 ,Id int
+	 ,ScheduleDateTime smalldatetime
+	 ,StatusId int 
+	 ,EventDateTime smalldatetime
+	 ,EventName varchar(100)
+	 );
+
+  INSERT INTO #ResultSet
+	SELECT 'Future Scheduled events' AS FutureEvents
+	, Id
+	, ScheduleDateTime
+	, StatusId
+	, EventDateTime
+	, EventName
+	FROM cpo_bruinbites.eventschedule 
+	WHERE scheduleDateTime > @DATE
+
+	UNION 
+	SELECT 'SMS did not sent for this proposal' AS FutureEvents
+	,Id
+	, ScheduleDateTime
+	, StatusId
+	, EventDateTime
+	, EventName
+	FROM cpo_bruinbites.eventschedule 
+	WHERE scheduleDateTime > DateAdd(day, -5, @DATE) 
+	AND scheduleDateTime < @DATE
+	AND ID NOT IN (SELECT EventScheduleID FROM cpo_bruinbites.emailnotificationlog)
+
+
+	IF EXISTS (SELECT TOP 1 1 FROM  #ResultSet)
+
+BEGIN 
+	
+	DECLARE @Body varchar(max)
+
+	DECLARE @TableHead varchar(max)
+
+	DECLARE @TableTail varchar(max)
+
+	Set @TableTail = '</table></body></html>';
+
+	--HTML layout--
+
+	Set @TableHead = '<html><head>' +
+
+	'<H2 style="color: #000000">Email Notification for cpo_bruinbites Changes</H2>' +
+
+	'<style>' +
+
+	'td {border: solid black 1px;padding:5px;font-size:12pt;color:black;} ' +
+
+	'</style>' +
+
+	'</head>' +
+
+	'<body><table cellpadding=0 cellspacing=0 border=0>' +
+
+	'<tr bgcolor=#4682b4>'+
+
+	'<td align=center><b>FutureEvents</b></td>' +
+
+	'<td align=center><b>Id</b></td>' +
+
+	'<td align=center><b>ScheduleDateTime</b></td>' +
+
+	'<td align=center><b>StatusId</b></td>' + 
+
+	'<td align=center><b>EventDateTime</b></td>' + 
+
+	'<td align=center><b>EventName</b></td></tr>';
+
+	--Select information for the Report--
+
+	Select @Body= (SELECT 
+	 td =FutureEvents  
+	,td =[Id]
+	,td = ScheduleDateTime
+	, td = StatusId
+	, td = EventDateTime
+	, td = EventName
+	FROM #ResultSet RS
+	FOR XML raw('tr'),Elements)
+
+
+	 --Replace the entity codes and row numbers
+
+	Set @Body = Replace(@Body, '_x0020_', space(1))
+
+	Set @Body = Replace(@Body, '_x003D_', '=')
+
+	Set @Body = Replace(@Body, '<tr><TRRow>1</TRRow>', '<tr bgcolor=#C6CFFF>')
+
+	Set @Body = Replace(@Body, '<TRRow>0</TRRow>', '')
+
+	Set @Body = @TableHead + @Body + @TableTail
+
+	--Select @Body
+
+	 declare @test_fl1 varchar(1)= 'N'
+	 declare @recp_subject1      as varchar(150)   = case @test_fl1
+																		when 'y' then '[TESTONLY]: '
+																		else          ''
+																	   end            +
+																	   'SAIT CPO_Bruinbites Email Notification CHANGES TODAY '+' ' + CAST(CAST(GETDATE() AS SMALLDATETIME) AS VARCHAR)
+                                               
+							   ,@recp_to_list1      as varchar(100)   = case @test_fl1
+																		when 'n' then 'pdugar@sait.ucla.edu; gkudale@sait.ucla.edu;tkota@sait.ucla.edu;mdaslam@sait.ucla.edu'
+																		else          'mdaslam@sait.ucla.edu'
+																	   end 
+							   ,@recp_cc_list1      as varchar(100)   = case @test_fl1
+																		when 'n' then ''
+																		else          'mdaslam@sait.ucla.edu'
+																	   end 	                    
+
+
+
+			--command to send notification
+			exec msdb.dbo.sp_send_dbmail @profile_name      = 'NoReply'
+													,@recipients        = @recp_to_list1
+													,@copy_recipients   = @recp_cc_list1
+													,@body_format = 'HTML'
+													,@subject           = @recp_subject1
+													,@body              = @Body
+
+		   END 
+
+	   DROP TABLE #ResultSet
+END 
