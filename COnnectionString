@@ -1,0 +1,12 @@
+select  
+     prj.name                    as 'ProjectName'
+    ,pa.name                     as 'SSISPackageName'
+    ,op.parameter_name           as 'ParmaterName'
+    ,op.design_default_value     as 'ConnectionString'
+from    
+     catalog.object_parameters   op
+join catalog.projects            prj
+  on op.project_id               = prj.project_id
+join [catalog].[packages]        pa 
+  on pa.project_id               = prj.project_id
+where op.parameter_name          like '%ConnectionString%'
